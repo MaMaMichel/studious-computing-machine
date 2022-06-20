@@ -13,23 +13,23 @@ model_params = {"layer_dims": [3, 8, 16, 32, 64, 128, 256],
             "enc_layer_depth": 2,
             "dec_layer_depth": 2}
 
-optim_params = {"lr": 0.001,
+optim_params = {"lr": 0.005,
                    "betas": (0.9, 0.999),
                    "eps": 1e-08,
                    "weight_decay": 0.5}
 
 training_params = {"batch_size": 128,
                    "training_epochs": 1000,
-                   "loss_alpha": 100,
+                   "loss_alpha": 1000,
                    "data_path": "../UnethicalSideproject/data/off_crop",
                    "cuda": False,
-                   "Sampling_rate": 20,
+                   "Sampling_rate": 15,
                    "Save_rate": 500,
                    "Save_path": './models'}
 
 # create model
 model = VAE(**model_params)
-model = load("./models/VAE_20")
+model = load("./models/VAE_17")
 if training_params["cuda"]:
     model.cuda()
 
@@ -94,7 +94,7 @@ for epoch in range(training_params["training_epochs"]):
             writer.add_scalar('MSE_Loss', loss_dict["MSE_Loss"], step_count)
             writer.add_scalar('KLD', loss_dict["KLD"], step_count)
 
-    print(f'Epoch Time: {(time.time() - start_time):.2f} seconds')
+    print(f' Epoch Time: {(time.time() - start_time):.2f} seconds')
     print(mu)
     print(var)
 
