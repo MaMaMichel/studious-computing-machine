@@ -51,7 +51,7 @@ class ResidualConnection(nn.Module):
 class UpBlock(nn.Module):
     def __init__(self, in_dim, out_dim, depth=2, kernel=3, stride=1, padding=1):
         super().__init__()
-        self.upLayers = []
+        self.upLayers = nn.ModuleList([])
         for i in range(depth):
             self.upLayers.append(ResidualConnection(in_dim, kernel, stride=1, padding=padding))
         self.up = UpSample(in_dim, out_dim, kernel, stride, padding)
@@ -65,7 +65,7 @@ class UpBlock(nn.Module):
 class ResBlock(nn.Module):
     def __init__(self, in_dim, out_dim, depth=2, kernel=3, stride=2, padding=1):
         super().__init__()
-        self.resLayers = []
+        self.resLayers = nn.ModuleList([])
         for i in range(depth):
             self.resLayers.append(ResidualConnection(in_dim, kernel, stride=1, padding=padding))
         self.down = DownSample(in_dim, out_dim, kernel, stride, padding)
@@ -81,7 +81,7 @@ class Encoder(nn.Module):
     def __init__(self, layer_dims=[3, 8, 16, 32, 64, 128, 256], input_size=128, latent_size = 32, layer_depth=2):
         super().__init__()
 
-        self.Blocks = []
+        self.Blocks = nn.ModuleList([])
 
         for in_dim, out_dim in zip(layer_dims[:-1], layer_dims[1:]):
             self.Blocks.append(ResBlock(in_dim, out_dim, layer_depth, kernel=3, stride=2, padding=1))
@@ -107,7 +107,7 @@ class Decoder(nn.Module):
         self.in_size = output_size//(2**(len(layer_dims)-1))
         self.up_size = nn.Linear(self.latent_size,  self.in_dim * self.in_size * self.in_size)
 
-        self.Blocks = []
+        self.Blocks =  nn.ModuleList([])
 
         for in_dim, out_dim in zip(layer_dims[:-1], layer_dims[1:]):
             self.Blocks.append(UpBlock(in_dim, out_dim, layer_depth, kernel=3, stride=1, padding=1))

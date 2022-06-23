@@ -7,41 +7,48 @@ from torchvision.utils import make_grid
 import time
 
 
-model_params = {"layer_dims": [3, 8, 16, 32, 64, 128, 256],
+model_params = {"layer_dims": [3, 8, 16, 32, 64, 128, 256, 512],
             "data_size": 128,
-            "latent_size": 32,
+            "latent_size": 16,
             "enc_layer_depth": 2,
-            "dec_layer_depth": 2}
+            "dec_layer_depth": 3}
 
-optim_params = {"lr": 0.005,
+optim_params = {"lr": 0.001,
                    "betas": (0.9, 0.999),
                    "eps": 1e-08,
-                   "weight_decay": 0.5}
+                   "weight_decay": 0.1}
 
-training_params = {"batch_size": 128,
-                   "training_epochs": 1000,
+training_params = {"batch_size": 192,
+                   "training_epochs": 2000,
                    "loss_alpha": 1000,
-                   "data_path": "../UnethicalSideproject/data/off_crop",
-                   "cuda": False,
-                   "Sampling_rate": 15,
+                   "data_path": "../Data/boobs/images_crop",
+                   "cuda": True,
+                   "Sampling_rate": 30,
                    "Save_rate": 500,
-                   "Save_path": './models'}
+                   "Save_path": './models',
+                   "Load_model": False,
+                   "Model_path": "./models/VAE_16"}
 
-# create model
+# create moodel
 model = VAE(**model_params)
-model = load("./models/VAE_17")
+
+if training_params["Load_model"]:
+    model = load(training_params["Model_path"])
+
 if training_params["cuda"]:
-    model.cuda()
+    print('Model: Cuda')
+    model.to('cuda')
 
 # define optimizer
 optimizer = optim.Adam(model.parameters(), **optim_params)
+
 
 # create training set
 trainingSet = DancingDataset(training_params["data_path"])
 
 # Create data loader
 data_loader = DataLoader(trainingSet, batch_size=training_params["batch_size"],
-                        shuffle=True, num_workers=2, drop_last=True)
+                        shuffle=True, num_workers=4, drop_last=True)
 
 # Writer will output to ./runs/ directory by default
 writer = SummaryWriter()
@@ -62,7 +69,7 @@ for epoch in range(training_params["training_epochs"]):
         input_img = batch['image'].float()
 
         if training_params["cuda"]:
-            input_img.cuda()
+            input_img = input_img.cuda()
 
         generated_img, mu, var = model(input_img)
 
@@ -86,8 +93,8 @@ for epoch in range(training_params["training_epochs"]):
             print(f'\rBatch Time: {(time.time() - batch_time):.2f} seconds', end='')
 
 
-            in_grid = make_grid(input_img)
-            out_grid = make_grid(generated_img)
+            in_grid = make_grid(input_img[:16])
+            out_grid = make_grid(generated_img[:16])
             writer.add_image('output images', out_grid, step_count)
             writer.add_image('input images', in_grid, step_count)
             writer.add_scalar('Loss',  loss_dict["loss"].detach() , step_count)
@@ -95,8 +102,8 @@ for epoch in range(training_params["training_epochs"]):
             writer.add_scalar('KLD', loss_dict["KLD"], step_count)
 
     print(f' Epoch Time: {(time.time() - start_time):.2f} seconds')
-    print(mu)
-    print(var)
+    # print(mu)
+    # print(var)
 
     # in_grid = make_grid(input_img)
     # out_grid = make_grid(generated_img)
